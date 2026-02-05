@@ -16,7 +16,7 @@ class AttendanceController extends Controller
      */
     public function checkinForm()
     {
-        $setting = Setting::first(); // lokasi kantor
+        $setting = Setting::first();
         return view('checkin', compact('setting'));
     }
 
@@ -27,11 +27,17 @@ class AttendanceController extends Controller
     {
         // ================= VALIDASI INPUT =================
         $request->validate([
-            'photo' => 'required|image|max:2048',
-            'lat'   => 'required',
-            'lng'   => 'required',
-            'token' => 'required',
+            'photo' => 'required|image|max:5120',
+            'lat'   => 'required|numeric',
+            'lng'   => 'required|numeric',
         ]);
+
+        // ================= TOKEN (SCAN ATAU MANUAL) =================
+        $token = trim($request->token) ?: trim($request->token_manual);
+
+        if (!$token) {
+            return back()->withErrors('Token QR wajib diisi (scan atau manual)');
+        }
 
         $user = Auth::user();
 
@@ -67,16 +73,21 @@ class AttendanceController extends Controller
         );
 
         if ($distance > $setting->radius_meter) {
-            return back()->withErrors('Lokasi di luar radius kantor');
+            return back()->withErrors(
+                sprintf('Lokasi di luar radius kantor. Jarak Anda: %.2f meter (maksimal %d meter)', 
+                    $distance, 
+                    $setting->radius_meter
+                )
+            );
         }
 
         // ================= VALIDASI QR TOKEN =================
-        $validToken = AttendanceToken::where('token', $request->token)
+        $validToken = AttendanceToken::where('token', $token)
             ->where('attendance_date', $today)
             ->first();
 
         if (!$validToken) {
-            return back()->withErrors('QR tidak valid atau sudah kadaluarsa');
+            return back()->withErrors('Token tidak valid atau sudah kadaluarsa untuk hari ini');
         }
 
         // ================= SIMPAN FOTO =================
@@ -90,10 +101,11 @@ class AttendanceController extends Controller
             'checkin_lat'    => $request->lat,
             'checkin_lng'    => $request->lng,
             'checkin_photo'  => $photoPath,
+            'note'           => $request->note,
             'status'         => 'hadir',
         ]);
 
-        return back()->with('success', 'Check-in berhasil');
+        return back()->with('success', 'Check-in berhasil pada ' . now()->format('H:i:s'));
     }
 
     /**
@@ -104,10 +116,16 @@ class AttendanceController extends Controller
         // ================= VALIDASI INPUT =================
         $request->validate([
             'photo' => 'required|image|max:2048',
-            'lat'   => 'required',
-            'lng'   => 'required',
-            'token' => 'required',
+            'lat'   => 'required|numeric',
+            'lng'   => 'required|numeric',
         ]);
+
+        // ================= TOKEN (SCAN ATAU MANUAL) =================
+        $token = trim($request->token) ?: trim($request->token_manual);
+
+        if (!$token) {
+            return back()->withErrors('Token QR wajib diisi (scan atau manual)');
+        }
 
         $user = Auth::user();
 
@@ -124,11 +142,11 @@ class AttendanceController extends Controller
             ->first();
 
         if (!$attendance) {
-            return back()->withErrors('Belum check-in hari ini');
+            return back()->withErrors('Belum check-in hari ini. Silakan check-in terlebih dahulu');
         }
 
         if ($attendance->checkout_time) {
-            return back()->withErrors('Anda sudah check-out');
+            return back()->withErrors('Anda sudah check-out pada ' . Carbon::parse($attendance->checkout_time)->format('H:i:s'));
         }
 
         // ================= AMBIL SETTING =================
@@ -146,16 +164,21 @@ class AttendanceController extends Controller
         );
 
         if ($distance > $setting->radius_meter) {
-            return back()->withErrors('Lokasi di luar radius kantor');
+            return back()->withErrors(
+                sprintf('Lokasi di luar radius kantor. Jarak Anda: %.2f meter (maksimal %d meter)', 
+                    $distance, 
+                    $setting->radius_meter
+                )
+            );
         }
 
         // ================= VALIDASI QR TOKEN =================
-        $validToken = AttendanceToken::where('token', $request->token)
+        $validToken = AttendanceToken::where('token', $token)
             ->where('attendance_date', $today)
             ->first();
 
         if (!$validToken) {
-            return back()->withErrors('QR tidak valid atau sudah kadaluarsa');
+            return back()->withErrors('Token tidak valid atau sudah kadaluarsa untuk hari ini');
         }
 
         // ================= SIMPAN FOTO =================
@@ -170,15 +193,21 @@ class AttendanceController extends Controller
             'status'         => 'pulang',
         ]);
 
-        return back()->with('success', 'Check-out berhasil');
+        return back()->with('success', 'Check-out berhasil pada ' . now()->format('H:i:s'));
     }
 
     /**
-     * Hitung jarak GPS (Haversine Formula)
+     * Hitung jarak GPS menggunakan Haversine Formula
+     * 
+     * @param float $lat1 Latitude titik pertama
+     * @param float $lon1 Longitude titik pertama
+     * @param float $lat2 Latitude titik kedua
+     * @param float $lon2 Longitude titik kedua
+     * @return float Jarak dalam meter
      */
     private function distance($lat1, $lon1, $lat2, $lon2)
     {
-        $earthRadius = 6371000; // meter
+        $earthRadius = 6371000; // Radius bumi dalam meter
 
         $dLat = deg2rad($lat2 - $lat1);
         $dLon = deg2rad($lon2 - $lon1);
@@ -189,6 +218,8 @@ class AttendanceController extends Controller
 
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
 
-        return $earthRadius * $c;
+        $distance = $earthRadius * $c;
+
+        return $distance;
     }
 }
