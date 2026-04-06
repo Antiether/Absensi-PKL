@@ -20,10 +20,20 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
+        // Create Admin User
+        $admin = User::create([
+            'name' => 'Admin',
+            'email' => 'admin@admin.com',
+            'password' => Hash::make('password'),
+            'role' => 'admin',
+        ]);
+
+        // Create Regular User (Participant)
         $user = User::create([
             'name' => 'Demo User',
-            'email' => 'demo@demo.com',
+            'email' => 'user@user.com',
             'password' => Hash::make('password'),
+            'role' => 'user',
         ]);
 
         Participant::create([
