@@ -4,9 +4,22 @@
             <h2 class="font-semibold text-xl">
                 Dashboard Admin – Monitoring Kehadiran
             </h2>
-            <a href="{{ route('qr') }}" class="bg-blue-600 text-white px-4 py-2 rounded">
-                Generate QR Code
-            </a>
+            <div class="flex gap-3">
+                <a href="{{ route('admin.users') }}" 
+                class="!bg-purple-600 !text-white px-4 py-2 rounded shadow hover:!bg-purple-700">
+                    Manage Users
+                </a>
+
+                <a href="{{ route('admin.users.create') }}" 
+                class="!bg-green-600 !text-white px-4 py-2 rounded shadow hover:!bg-green-700">
+                    + Add User
+                </a>
+
+                <a href="{{ route('qr') }}" 
+                class="!bg-blue-600 !text-white px-4 py-2 rounded shadow hover:!bg-blue-700">
+                    Generate QR
+                </a>
+            </div>
         </div>
     </x-slot>
 

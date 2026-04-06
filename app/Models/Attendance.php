@@ -3,13 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Attendance extends Model
 {
-    public function participant() {
-        return $this->belongsTo(Participant::class);
-    }
-
     protected $fillable = [
         'participant_id',
         'date',
@@ -23,4 +20,9 @@ class Attendance extends Model
         'checkout_photo',
         'status',
     ];
+
+    public function participant(): BelongsTo
+    {
+        return $this->belongsTo(Participant::class);
+    }
 }
