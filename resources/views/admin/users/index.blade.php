@@ -1,70 +1,104 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl">
-                Manage Users
-            </h2>
-            <a href="{{ route('admin.users.create') }}" class="bg-green-600 text-white px-4 py-2 rounded">
-                + Add New User
+    <div class="p-6 space-y-6">
+
+        {{-- HEADER --}}
+        <div class="bg-gradient-to-r from-indigo-600 to-blue-500 text-white p-6 rounded-2xl shadow flex justify-between items-center">
+            <div>
+                <h2 class="text-xl font-semibold">Manage Users</h2>
+                <p class="text-sm opacity-80">Kelola akun admin & peserta</p>
+            </div>
+
+            <a href="{{ route('admin.users.create') }}"
+               class="bg-white text-indigo-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-100">
+                + Add User
             </a>
         </div>
-    </x-slot>
 
-    <div class="py-6 max-w-6xl mx-auto">
+        {{-- ALERT --}}
         @if($message = session('success'))
-            <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+            <div class="bg-green-100 text-green-700 px-4 py-3 rounded-lg">
                 {{ $message }}
             </div>
         @endif
 
-        <div class="overflow-x-auto">
-            <table class="w-full border">
-                <thead>
-                    <tr class="bg-gray-200">
-                        <th class="border p-2">Name</th>
-                        <th class="border p-2">Email</th>
-                        <th class="border p-2">Role</th>
-                        <th class="border p-2">Type</th>
-                        <th class="border p-2">Actions</th>
+        {{-- TABLE CARD --}}
+        <div class="bg-white rounded-2xl shadow overflow-hidden">
+
+            <div class="px-6 py-4 border-b font-semibold text-gray-700">
+                User List
+            </div>
+
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+                    <tr>
+                        <th class="p-4 text-left">User</th>
+                        <th class="p-4">Role</th>
+                        <th class="p-4">Type</th>
+                        <th class="p-4 text-right">Action</th>
                     </tr>
                 </thead>
+
                 <tbody>
-                    @foreach ($users as $user)
-                    <tr class="hover:bg-gray-100">
-                        <td class="border p-2">{{ $user->name }}</td>
-                        <td class="border p-2">{{ $user->email }}</td>
-                        <td class="border p-2">
-                            <span class="px-2 py-1 rounded text-sm {{ $user->role === 'admin' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700' }}">
+                    @forelse ($users as $user)
+                    <tr class="border-t hover:bg-gray-50">
+
+                        {{-- USER --}}
+                        <td class="p-4 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
+                                {{ strtoupper(substr($user->name,0,1)) }}
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-800">{{ $user->name }}</p>
+                                <p class="text-xs text-gray-500">{{ $user->email }}</p>
+                            </div>
+                        </td>
+
+                        {{-- ROLE --}}
+                        <td class="p-4 text-center">
+                            <span class="px-3 py-1 rounded-full text-xs
+                                {{ $user->role === 'admin' 
+                                    ? 'bg-red-100 text-red-600' 
+                                    : 'bg-blue-100 text-blue-600' }}">
                                 {{ ucfirst($user->role) }}
                             </span>
                         </td>
-                        <td class="border p-2">
-                            @if($user->participant)
-                                <span class="text-sm">Participant</span>
-                            @else
-                                <span class="text-sm text-gray-600">-</span>
-                            @endif
+
+                        {{-- TYPE --}}
+                        <td class="p-4 text-center">
+                            {{ $user->participant ? 'Participant' : '-' }}
                         </td>
-                        <td class="border p-2">
-                            <div class="flex gap-2">
-                                <a href="{{ route('admin.users.edit', $user) }}" class="text-blue-600 hover:underline">Edit</a>
-                                <form method="POST" action="{{ route('admin.users.destroy', $user) }}" style="display: inline;">
+
+                        {{-- ACTION --}}
+                        <td class="p-4 text-right">
+                            <div class="flex justify-end gap-3 text-sm">
+                                <a href="{{ route('admin.users.edit', $user) }}"
+                                   class="text-indigo-600 hover:underline">
+                                   Edit
+                                </a>
+
+                                <form method="POST" action="{{ route('admin.users.destroy', $user) }}">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:underline" onclick="return confirm('Are you sure?')">Delete</button>
+                                    <button onclick="return confirm('Delete user?')"
+                                        class="text-red-500 hover:underline">
+                                        Delete
+                                    </button>
                                 </form>
                             </div>
                         </td>
+
                     </tr>
-                    @endforeach
+                    @empty
+                    <tr>
+                        <td colspan="4" class="text-center py-10 text-gray-400">
+                            No users found 🥀
+                        </td>
+                    </tr>
+                    @endforelse
                 </tbody>
             </table>
+
         </div>
 
-        @if($users->isEmpty())
-            <div class="text-center py-8 text-gray-500">
-                No users found
-            </div>
-        @endif
     </div>
 </x-app-layout>

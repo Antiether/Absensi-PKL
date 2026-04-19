@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
-import basicSsl from '@vitejs/plugin-basic-ssl'; // Import the plugin
+import basicSsl from '@vitejs/plugin-basic-ssl';
 
 export default defineConfig({
     plugins: [
@@ -8,10 +8,13 @@ export default defineConfig({
             input: ['resources/css/app.css', 'resources/js/app.js'],
             refresh: true,
         }),
-        basicSsl() // Use the plugin
+        basicSsl(),
     ],
     server: {
-        https: true, // Enable HTTPS server
-        host: 'localhost',
-    }
+        https: true,
+        host: 'absensi-pkl.test', 
+        hmr: {
+            host: 'absensi-pkl.test',
+        },
+    },
 });

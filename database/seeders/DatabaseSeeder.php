@@ -43,8 +43,10 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $setting = new Setting;
-        $setting->office_lat = -5.4290;
-        $setting->office_lng = 105.2520;
+        // $setting->office_lat = -5.4290;
+        // $setting->office_lng = 105.2520;
+        $setting->office_lat = -5.372785724041917;
+        $setting->office_lng = 105.21238247247774;
         $setting->radius_meter = 100;
         $setting->save();
     }

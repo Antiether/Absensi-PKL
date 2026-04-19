@@ -1,120 +1,111 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl">
-            Edit User: {{ $user->name }}
-        </h2>
-    </x-slot>
+    <div class="p-6 max-w-2xl mx-auto space-y-6">
 
-    <div class="py-6 max-w-2xl mx-auto">
-        <form method="POST" action="{{ route('admin.users.update', $user) }}" class="space-y-6">
+        {{-- HEADER --}}
+        <div class="bg-gradient-to-r from-indigo-600 to-blue-500 text-white p-6 rounded-2xl shadow">
+            <h2 class="text-xl font-semibold">Edit User</h2>
+            <p class="text-sm opacity-80">{{ $user->name }}</p>
+        </div>
+
+        {{-- FORM --}}
+        <form method="POST" action="{{ route('admin.users.update', $user->id) }}"
+              class="bg-white p-6 rounded-2xl shadow space-y-5">
             @csrf
             @method('PATCH')
 
+            {{-- NAME --}}
             <div>
-                <label for="name" class="block text-sm font-medium text-gray-700">
-                    Name
-                </label>
-                <input type="text" name="name" id="name" value="{{ old('name', $user->name) }}" required 
-                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                @error('name')
-                    <span class="text-red-600 text-sm">{{ $message }}</span>
-                @enderror
+                <label class="text-sm text-gray-600">Name</label>
+                <input type="text" name="name"
+                    value="{{ old('name', $user->name) }}"
+                    class="w-full border px-3 py-2 rounded-lg mt-1">
             </div>
 
+            {{-- EMAIL --}}
             <div>
-                <label for="email" class="block text-sm font-medium text-gray-700">
-                    Email
-                </label>
-                <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}" required 
-                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                @error('email')
-                    <span class="text-red-600 text-sm">{{ $message }}</span>
-                @enderror
+                <label class="text-sm text-gray-600">Email</label>
+                <input type="email" name="email"
+                    value="{{ old('email', $user->email) }}"
+                    class="w-full border px-3 py-2 rounded-lg mt-1">
             </div>
 
+            {{-- ROLE --}}
             <div>
-                <label for="role" class="block text-sm font-medium text-gray-700">
-                    Role
-                </label>
-                <select name="role" id="role" required 
-                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                    <option value="">-- Select Role --</option>
-                    <option value="admin" {{ old('role', $user->role) === 'admin' ? 'selected' : '' }}>Admin</option>
-                    <option value="user" {{ old('role', $user->role) === 'user' ? 'selected' : '' }}>User (Participant)</option>
+                <label class="text-sm text-gray-600">Role</label>
+                <select name="role" id="role"
+                    class="w-full border px-3 py-2 rounded-lg mt-1">
+                    <option value="admin" {{ $user->role === 'admin' ? 'selected' : '' }}>
+                        Admin
+                    </option>
+                    <option value="user" {{ $user->role === 'user' ? 'selected' : '' }}>
+                        User
+                    </option>
                 </select>
-                @error('role')
-                    <span class="text-red-600 text-sm">{{ $message }}</span>
-                @enderror
             </div>
 
-            <div id="participant-fields" style="display: none;">
+            {{-- PARTICIPANT --}}
+            <div id="participant-fields" class="space-y-3">
                 <div>
-                    <label for="npm" class="block text-sm font-medium text-gray-700">
-                        NPM
-                    </label>
-                    <input type="text" name="npm" id="npm" value="{{ old('npm', $user->participant?->npm) }}" 
-                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                    @error('npm')
-                        <span class="text-red-600 text-sm">{{ $message }}</span>
-                    @enderror
+                    <label class="text-sm text-gray-600">NPM</label>
+                    <input type="text" name="npm"
+                        value="{{ old('npm', optional($user->participant)->npm) }}"
+                        class="w-full border px-3 py-2 rounded-lg mt-1">
                 </div>
 
-                <div class="mt-4">
-                    <label for="institusi" class="block text-sm font-medium text-gray-700">
-                        Institution
-                    </label>
-                    <input type="text" name="institusi" id="institusi" value="{{ old('institusi', $user->participant?->institusi) }}" 
-                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                    @error('institusi')
-                        <span class="text-red-600 text-sm">{{ $message }}</span>
-                    @enderror
+                <div>
+                    <label class="text-sm text-gray-600">Institution</label>
+                    <input type="text" name="institusi"
+                        value="{{ old('institusi', optional($user->participant)->institusi) }}"
+                        class="w-full border px-3 py-2 rounded-lg mt-1">
                 </div>
             </div>
 
+            {{-- PASSWORD --}}
             <div>
-                <label for="password" class="block text-sm font-medium text-gray-700">
-                    Password (leave blank to keep current)
+                <label class="text-sm text-gray-600">
+                    Password (leave blank if no change)
                 </label>
-                <input type="password" name="password" id="password" 
-                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                @error('password')
-                    <span class="text-red-600 text-sm">{{ $message }}</span>
-                @enderror
+                <input type="password" name="password"
+                    class="w-full border px-3 py-2 rounded-lg mt-1">
             </div>
 
             <div>
-                <label for="password_confirmation" class="block text-sm font-medium text-gray-700">
-                    Confirm Password
-                </label>
-                <input type="password" name="password_confirmation" id="password_confirmation" 
-                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
+                <label class="text-sm text-gray-600">Confirm Password</label>
+                <input type="password" name="password_confirmation"
+                    class="w-full border px-3 py-2 rounded-lg mt-1">
             </div>
 
-            <div class="flex gap-4">
-                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded">
-                    Update User
-                </button>
-                <a href="{{ route('admin.users') }}" class="bg-gray-600 text-white px-6 py-2 rounded">
+            {{-- ACTION --}}
+            <div class="flex justify-end gap-3 pt-4">
+                <a href="{{ route('admin.users') }}"
+                   class="px-4 py-2 bg-gray-200 rounded-lg">
                     Cancel
                 </a>
+
+                <button type="submit"
+                    class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                    Update
+                </button>
             </div>
+
         </form>
+
     </div>
 
+    {{-- SCRIPT --}}
     <script>
-        const roleSelect = document.getElementById('role');
-        const participantFields = document.getElementById('participant-fields');
+        const role = document.getElementById('role');
+        const field = document.getElementById('participant-fields');
 
-        function toggleParticipantFields() {
-            if (roleSelect.value === 'user') {
-                participantFields.style.display = 'block';
+        function toggle() {
+            if (role.value === 'user') {
+                field.style.display = 'block';
             } else {
-                participantFields.style.display = 'none';
+                field.style.display = 'none';
             }
         }
 
-        roleSelect.addEventListener('change', toggleParticipantFields);
-        // Initial call
-        toggleParticipantFields();
+        role.addEventListener('change', toggle);
+        toggle();
     </script>
 </x-app-layout>

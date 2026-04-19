@@ -6,17 +6,35 @@ use Illuminate\Support\Str;
 use App\Models\Attendance;
 use App\Models\AttendanceToken;
 use App\Models\User;
+use App\Models\Setting;
 use App\Models\Participant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $attendances = Attendance::with('participant.user')
-            ->orderBy('date', 'desc')
-            ->get();
+        $query = Attendance::with('participant.user');
+
+        // FILTER NAMA
+        if ($request->filled('nama')) {
+            $query->whereHas('participant.user', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->nama . '%');
+            });
+        }
+
+        // FILTER TANGGAL
+        if ($request->filled('tanggal')) {
+            $query->whereDate('date', $request->tanggal);
+        }
+
+        // FILTER STATUS
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $attendances = $query->latest()->paginate(10)->withQueryString();
 
         return view('admin.dashboard', compact('attendances'));
     }
@@ -29,6 +47,29 @@ class AdminController extends Controller
         ]);
 
         return view('admin.qr', compact('token'));
+    }
+    public function setting()
+    {
+        $setting = Setting::first();
+        return view('admin.setting', compact('setting'));
+    }
+    public function updateSetting(Request $request)
+    {
+        $request->validate([
+            'office_lat'   => 'required|numeric',
+            'office_lng'   => 'required|numeric',
+            'radius_meter' => 'required|integer|min:10',
+        ]);
+
+        $setting = Setting::first();
+
+        if ($setting) {
+            $setting->update($request->only('office_lat', 'office_lng', 'radius_meter'));
+        } else {
+            Setting::create($request->only('office_lat', 'office_lng', 'radius_meter'));
+        }
+
+        return back()->with('success', 'Setting berhasil disimpan');
     }
 
     /**
